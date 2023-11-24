@@ -1,0 +1,135 @@
+* {
+  padding: 0;
+  margin: 0;
+}
+
+html {
+  overflow: auto;
+  background: RGB(var(--v-theme-surface));
+}
+
+#app {
+  font-family: Inter, sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.text-h1,
+.text-h2,
+.text-h3,
+.text-h4,
+.text-h5,
+.text-h6,
+.text-subtitle-1,
+.text-subtitle-2,
+.text-body-1,
+.text-body-2,
+.text-button,
+.text-caption,
+.text-overline {
+  font-family: Inter, sans-serif !important;
+}
+
+@media (min-width: 600px) {
+  .text-sm-h1,
+  .text-sm-h2,
+  .text-sm-h3,
+  .text-sm-h4,
+  .text-sm-h5,
+  .text-sm-h6,
+  .text-sm-subtitle-1,
+  .text-sm-subtitle-2,
+  .text-sm-body-1,
+  .text-sm-body-2,
+  .text-sm-button,
+  .text-sm-caption,
+  .text-sm-overline {
+    font-family: Inter, sans-serif !important;
+  }
+}
+
+@media (min-width: 960px) {
+  .text-md-h1,
+  .text-md-h2,
+  .text-md-h3,
+  .text-md-h4,
+  .text-md-h5,
+  .text-md-h6,
+  .text-md-subtitle-1,
+  .text-md-subtitle-2,
+  .text-md-body-1,
+  .text-md-body-2,
+  .text-md-button,
+  .text-md-caption,
+  .text-md-overline {
+    font-family: Inter, sans-serif !important;
+  }
+}
+
+@media (min-width: 1280px) {
+  .text-lg-h1,
+  .text-lg-h2,
+  .text-lg-h3,
+  .text-lg-h4,
+  .text-lg-h5,
+  .text-lg-h6,
+  .text-lg-subtitle-1,
+  .text-lg-subtitle-2,
+  .text-lg-body-1,
+  .text-lg-body-2,
+  .text-lg-button,
+  .text-lg-caption,
+  .text-lg-overline {
+    font-family: Inter, sans-serif !important;
+  }
+}
+
+@media (min-width: 1920px) {
+  .text-xl-h1,
+  .text-xl-h2,
+  .text-xl-h3,
+  .text-xl-h4,
+  .text-xl-h5,
+  .text-xl-h6,
+  .text-xl-subtitle-1,
+  .text-xl-subtitle-2,
+  .text-xl-body-1,
+  .text-xl-body-2,
+  .text-xl-button,
+  .text-xl-caption,
+  .text-xl-overline {
+    font-family: Inter, sans-serif !important;
+  }
+}
+
+@media (min-width: 2560px) {
+  .text-xxl-h1,
+  .text-xxl-h2,
+  .text-xxl-h3,
+  .text-xxl-h4,
+  .text-xxl-h5,
+  .text-xxl-h6,
+  .text-xxl-subtitle-1,
+  .text-xxl-subtitle-2,
+  .text-xxl-body-1,
+  .text-xxl-body-2,
+  .text-xxl-button,
+  .text-xxl-caption,
+  .text-xxl-overline {
+    font-family: Inter, sans-serif !important;
+  }
+}
+
+.v-overlay__scrim {
+  background: RGB(var(--v-theme-background));
+  opacity: 50%;
+}
+
+.v-theme--light,
+.v-theme--dark {
+  --v-theme-on-warning: 255, 255, 255 !important;
+}
+
+// html {
+//   overflow: auto;
+// }

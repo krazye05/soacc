@@ -1,0 +1,152 @@
+.layout-container {
+  overflow: unset !important;
+  display: unset;
+
+  &.layout-collapsed {
+    &:not(.layout-overlay-nav) .layout-content-wrapper {
+      padding-inline-start: 260px;
+    }
+    .layout-content-wrapper {
+      padding-inline-start: 68px;
+    }
+  }
+  .layout-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-block-size: calc(var(--vh, 1vh) * 100);
+    transition: padding-inline-start 0.2s ease-in-out;
+    will-change: padding-inline-start;
+  }
+
+  .v-toolbar {
+    box-shadow: unset !important;
+    position: sticky !important;
+    background-color: unset;
+    padding-inline: 1.5rem;
+    overflow: visible;
+
+    width: 100% !important;
+
+    inset-block-start: 0;
+    inline-size: 100%;
+    margin-inline: auto;
+    max-inline-size: 1440px;
+
+    :deep(.v-toolbar__content) {
+      border-radius: 0 0 10px 10px;
+      transition: padding 0.2s ease, background-color 0.18s ease;
+      block-size: 64px;
+
+      inline-size: 100%;
+      margin-inline: auto;
+      max-inline-size: 1440px;
+    }
+  }
+  &.window-scrolled {
+    :deep(.v-toolbar__content) {
+      backdrop-filter: blur(6px);
+      background-color: rgba(var(--v-theme-surface), 0.9) !important;
+
+      box-shadow: 0px 2px 4px -1px var(--v-shadow-key-umbra-opacity, rgba(0, 0, 0, 0.2)),
+        0px 4px 5px 0px
+          var(--v-shadow-key-penumbra-opacity, rgba(0, 0, 0, 0.14)),
+        0px 1px 10px 0px
+          var(--v-shadow-key-penumbra-opacity, rgba(0, 0, 0, 0.12));
+      padding-inline: 1.2rem;
+    }
+  }
+  :deep(.v-main) {
+    flex-grow: 1;
+    padding-block: 1.5rem;
+    padding-inline: 1.5rem;
+    inline-size: 100%;
+    margin-inline: auto;
+    max-inline-size: 1440px;
+  }
+  .v-avatar {
+    height: 40px;
+    width: 40px;
+    background: RGB(var(--v-theme-surface));
+    -webkit-margin-end: 16px !important;
+  }
+  .navigation-parent {
+    :deep(.v-list-item__prepend) {
+      display: unset;
+      > .v-icon {
+        -webkit-margin-end: 16px !important;
+        margin-inline-end: 16px !important;
+      }
+    }
+    .navigation-list {
+      -webkit-padding-start: 0px;
+      padding-inline-start: 0px;
+      :deep(.v-list-group__items) {
+        .v-list-item {
+          -webkit-padding-start: 20px !important;
+          padding-inline-start: 20px !important;
+          -webkit-padding-end: 8px !important;
+          padding-inline-end: 8px !important;
+        }
+      }
+      :deep(.v-list-item) {
+        padding-left: 20px;
+        border-radius: unset;
+        border-top-right-radius: 50px;
+        border-bottom-right-radius: 50px;
+      }
+      :deep(.v-list-item-title) {
+        text-transform: capitalize;
+        // color: white;
+        user-select: none;
+      }
+
+      :deep(.v-list-group__header.v-list-item--active:not(:focus-visible)) {
+        .v-list-item__overlay {
+          opacity: 0.12;
+        }
+      }
+    }
+  }
+}
+.userOptionsIcon {
+  -webkit-margin-end: 16px !important;
+  margin-inline-end: 16px !important;
+}
+
+.v-dialog.alert-confirmation-dialog {
+  @media (min-width: 600px) {
+    :deep(.v-overlay__content) {
+      // min-width: calc(50% - 48px) !important;
+      width: calc(90% - 48px) !important;
+    }
+  }
+  @media (min-width: 960px) {
+    :deep(.v-overlay__content) {
+      // min-width: calc(50% - 48px) !important;
+      width: calc(80% - 48px) !important;
+    }
+  }
+  @media (min-width: 1280px) {
+    :deep(.v-overlay__content) {
+      // min-width: calc(50% - 48px) !important;
+      width: calc(70% - 48px) !important;
+    }
+  }
+  @media (min-width: 1920px) {
+    :deep(.v-overlay__content) {
+      // min-width: calc(50% - 48px) !important;
+      width: calc(60% - 48px) !important;
+    }
+  }
+  @media (min-width: 2560px) {
+    :deep(.v-overlay__content) {
+      // min-width: calc(50% - 48px) !important;
+      width: calc(50% - 48px) !important;
+    }
+  }
+}
+
+// .v-list-group__header.v-list-item--active:not(:focus-visible)
+//   .v-list-item__overlay {
+// }

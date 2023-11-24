@@ -1,0 +1,43 @@
+.uploadFile {
+  .v-field__input {
+    // .v-input__control {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  &.noFile .v-icon--clickable {
+    pointer-events: none;
+    opacity: 0.3;
+    color: unset !important;
+  }
+  .v-input__append {
+    padding-top: unset !important;
+  }
+}
+.v-theme--dark {
+  .vue-pdf-embed {
+    canvas {
+      filter: invert(93%);
+    }
+  }
+}
+
+.v-dialog .v-overlay__content > .v-card,
+.v-dialog .v-overlay__content > .v-sheet {
+  overflow-y: overlay;
+  &::-webkit-scrollbar {
+    width: 8px;
+    // height: 10px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 50px;
+  }
+}
+.v-text-field .v-input__details {
+  -webkit-padding-start: unset;
+  padding-inline-start: unset;
+  -webkit-padding-end: unset;
+  padding-inline-end: unset;
+}

@@ -1,0 +1,25 @@
+// @keyframes mdc-checkbox-unchecked-checked-checkmark-path {
+//     0%,50% {
+//         stroke-dashoffset: 29.7833385
+//     }
+
+//     50% {
+//         animation-timing-function: cubic-bezier(0,0,0.2,1)
+//     }
+
+//     to {
+//         stroke-dashoffset: 0
+//     }
+// }
+// @keyframes mdc-checkbox-checked-unchecked-checkmark-path {
+//     0% {
+//         animation-timing-function: cubic-bezier(0.4,0,1,1);
+//         opacity: 1;
+//         stroke-dashoffset: 0
+//     }
+
+//     to {
+//         opacity: 0;
+//         stroke-dashoffset: -29.7833385
+//     }
+// }
