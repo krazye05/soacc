@@ -1,31 +1,40 @@
+<style lang="scss" scoped>
+.monthYearContainer {
+  width: 100%;
+  overflow: hidden;
+  top: 3px;
+  :deep(.v-card__overlay) {
+    opacity: 0;
+  }
+}
+</style>
 <template>
+  <v-text-field
+    :loading="defProps.loading"
+    :disabled="defProps.disabled"
+    :hide-details="hideDetails"
+    v-model="labelValue"
+    color="primary"
+    readonly
+    :label="label"
+    variant="outlined"
+    density="compact"
+    @update:focused="openMenu = true"
+    :persistentHint="persistentHint"
+    :hint="hint"
+    ref="vMenuTarget"
+  />
   <v-menu
     v-model="openMenu"
     :persistent="action"
-    @update:modelValue="initMenu()"
+    :target="vMenuTarget"
+    :close-on-content-click="false"
   >
-    <template v-slot:activator="{ props }">
-      <v-text-field
-        :loading="defProps.loading"
-        :disabled="defProps.disabled"
-        :hide-details="hideDetails"
-        v-model="labelValue"
-        color="primary"
-        readonly
-        :label="label"
-        variant="outlined"
-        density="compact"
-        v-bind="props"
-        :persistentHint="persistentHint"
-        :hint="hint"
-      ></v-text-field>
-    </template>
-    <v-card style="width: 100%; overflow: hidden; top: 3px">
-      <v-row no-gutters @click.stop.prevent>
+    <v-card class="monthYearContainer">
+      <v-row no-gutters>
         <v-col class="ma-3">
           <v-autocomplete
             color="primary"
-            @click.stop.prevent
             hide-details
             :label="!yearMonth ? 'Month' : 'Year'"
             variant="outlined"
@@ -40,14 +49,11 @@
             :items="!yearMonth ? monthList?.items || months : yearList?.items"
             :item-title="useValue(!yearMonth, monthList, yearList, 'itemTitle')"
             :item-value="useValue(!yearMonth, monthList, yearList, 'itemValue')"
-          ></v-autocomplete>
-          <!-- :items="!yearMonth ? (defProps.monthProp ? defProps.monthProp.items : defProps.monthList) : (defProps.yearProp ? defProps.yearProp.items : defProps.yearList) " -->
-          <!-- v-model="monthYearValue.month" -->
+          />
         </v-col>
         <v-col class="ma-3">
           <v-autocomplete
             color="primary"
-            @click.stop.prevent
             hide-details
             :label="!yearMonth ? 'Year' : 'Month'"
             variant="outlined"
@@ -72,10 +78,10 @@
                   : monthList?.items || months
                 ).length === 0)
             "
-          ></v-autocomplete>
+          />
         </v-col>
       </v-row>
-      <v-row no-gutters @click.stop.prevent v-if="action">
+      <v-row no-gutters v-if="action">
         <v-col>
           <v-btn
             block
@@ -83,11 +89,14 @@
             rounded="0"
             color="success"
             variant="outlined"
-            :disabled="checkMonthYearValue || checkMonthYearValueDifference"
+            :disabled="
+              condMonthYearValue(monthYearValue) ||
+              checkMonthYearValueDifference ||
+              !checkListIfMonthYearHasValue
+            "
             @click="inputEmit(true)"
-          >
-            Ok
-          </v-btn>
+            text="Ok"
+          />
         </v-col>
         <v-col>
           <v-btn
@@ -97,26 +106,30 @@
             color="error"
             variant="outlined"
             @click="inputEmit(false)"
-          >
-            Close
-          </v-btn>
+            text="Close"
+          />
         </v-col>
       </v-row>
     </v-card>
   </v-menu>
 </template>
 <script lang="ts" setup>
-import { PropType, computed, ref, watch } from "vue";
+import { PropType, computed, inject, ref, watch } from "vue";
 
-interface monthYearList {
+interface IMonthYearList {
   items: Array<{ title: string; value: string } | any>;
   itemTitle?: string;
   itemValue?: string;
 }
+interface IMonthYear {
+  month: any;
+  year: any;
+}
+const helpers = inject<IHelpers>("Helpers")!;
 
 const defProps = defineProps({
   label: String,
-  yearList: Object as PropType<monthYearList>,
+  yearList: Object as PropType<IMonthYearList>,
   modelValue: {
     type: Object,
     default: () => ({ month: null, year: null }),
@@ -131,107 +144,119 @@ const defProps = defineProps({
   persistentHint: Boolean,
   hint: String,
   yearMonth: Boolean,
-  monthList: Object as PropType<monthYearList>,
+  monthList: Object as PropType<IMonthYearList>,
   alternateDisabled: Boolean,
-  modelValueAction: Object,
 });
-
-function useValue(
-  yearMonth: boolean,
-  prop1?: monthYearList,
-  prop2?: monthYearList,
-  key?: "itemTitle" | "itemValue"
-) {
-  const value = !yearMonth ? prop1 : prop2;
-  return (key === "itemTitle" ? value?.itemTitle : value?.itemValue) || "";
-}
-
-const emit = defineEmits(["update:modelValue", "update:modelValueAction"]);
+defineOptions({
+  inheritAttrs: false,
+});
+const emit = defineEmits([
+  "update:modelValue",
+  "openMenu",
+  "closeMenu",
+  "done",
+]);
 const openMenu = ref(),
-  monthYearValue = ref({ month: null, year: null }),
-  defmonthYearValue = ref({ month: null, year: null }),
+  vMenuTarget = ref<Element>(),
+  monthYearValue = ref<IMonthYear>({ month: null, year: null }),
+  defmonthYearValue = ref<IMonthYear>({
+    month: null,
+    year: null,
+  }),
   labelValue = computed(() => {
-    if (!checkMonthYearValue.value) {
-      if (!defProps.action) {
-        return defProps.modelValue?.month + " " + defProps.modelValue?.year;
-      } else if (openMenu.value) {
-        if (
-          ["", undefined, null].includes(defmonthYearValue.value.month) ||
-          ["", undefined, null].includes(defmonthYearValue.value.year)
-        ) {
-          return " ";
-        } else {
-          return (
-            defmonthYearValue.value.month + " " + defmonthYearValue.value.year
-          );
-        }
-      } else {
-        if (
-          ["", undefined, null].includes(defProps.modelValue.month) ||
-          ["", undefined, null].includes(defProps.modelValue.year)
-        )
-          return "";
-        return defProps.modelValue.month + " " + defProps.modelValue.year;
-      }
-    } else {
-      return openMenu.value ? " " : "";
+    const getFormattedDate = (value) =>
+        condMonthYearValue(value) ? " " : `${value.month} ${value.year}`,
+      shouldReturnDefault = () =>
+        (!condMonthYearValue(monthYearValue.value) ||
+          !condMonthYearValue(defmonthYearValue.value)) &&
+        !defProps.action;
+
+    if (shouldReturnDefault() || (defProps.action && openMenu.value)) {
+      return getFormattedDate(
+        openMenu.value ? defmonthYearValue.value : defProps.modelValue
+      );
+    } else if (!condMonthYearValue(defProps.modelValue as IMonthYear, "AND")) {
+      return getFormattedDate(defProps.modelValue);
     }
+    return openMenu.value ? " " : "";
   }),
   checkMonthYearValueDifference = computed(
     () =>
       monthYearValue.value.month === defmonthYearValue.value.month &&
       monthYearValue.value.year === defmonthYearValue.value.year
+  ),
+  checkListIfMonthYearHasValue = computed(
+    () =>
+      (defProps.monthList ? defProps.monthList.items.length : months.length) >
+        0 && (defProps.yearList?.items.length || 0) > 0
   );
 
-function inputEmit(_initChangeLabel?: Boolean) {
-  if (defProps.action)
-    emit(
-      "update:modelValueAction",
-      JSON.parse(JSON.stringify(monthYearValue.value))
-    );
-  if (!defProps.action || _initChangeLabel === true)
-    emit("update:modelValue", JSON.parse(JSON.stringify(monthYearValue.value)));
-
-  if (
-    (!defProps.action && !checkMonthYearValue.value) ||
-    _initChangeLabel !== undefined
-  )
-    openMenu.value = false;
-  if (_initChangeLabel === false)
-    setTimeout(() => {
-      monthYearValue.value = JSON.parse(
-        JSON.stringify(defmonthYearValue.value)
+const inputEmit = (_initChangeLabel?: Boolean) => {
+    
+    emit("update:modelValue", helpers.rebuildObject(monthYearValue.value));
+    if (
+      (!defProps.action &&
+        !condMonthYearValue(monthYearValue.value) &&
+        !checkMonthYearValueDifference.value &&
+        condMonthYearValue(defmonthYearValue.value)) ||
+      (defProps.action && _initChangeLabel != undefined)
+    ) {
+      if (_initChangeLabel === false) {
+        emit(
+          "update:modelValue",
+          helpers.rebuildObject(defmonthYearValue.value)
+        );
+        monthYearValue.value = helpers.rebuildObject(defmonthYearValue.value);
+      }
+      openMenu.value = false;
+      emit("done", {
+        old: helpers.rebuildObject(defmonthYearValue.value),
+        new: helpers.rebuildObject(monthYearValue.value),
+      });
+    }
+  },
+  condMonthYearValue = (value: IMonthYear, cond?: "AND" | "OR") => {
+    if (cond === "AND")
+      return (
+        helpers.isNullOrUndefined(value.month) &&
+        helpers.isNullOrUndefined(value.year)
       );
-    }, 50);
-}
+    return (
+      helpers.isNullOrUndefined(value.month) ||
+      helpers.isNullOrUndefined(value.year)
+    );
+  },
+  useValue = (
+    yearMonth: boolean,
+    prop1?: IMonthYearList,
+    prop2?: IMonthYearList,
+    key?: "itemTitle" | "itemValue"
+  ) => {
+    const value = !yearMonth ? prop1 : prop2;
+    return (key === "itemTitle" ? value?.itemTitle : value?.itemValue) || "";
+  };
 
 watch(
-  () => [
-    defProps.modelValue,
-    defProps.modelValue.year,
-    defProps.modelValue.month,
-  ],
+  () => openMenu.value,
   () => {
-    monthYearValue.value = JSON.parse(JSON.stringify(defProps.modelValue));
-    if (defProps.action)
-      emit(
-        "update:modelValueAction",
-        JSON.parse(JSON.stringify(monthYearValue.value))
-      );
+    if (openMenu.value) {
+      defmonthYearValue.value = helpers.rebuildObject(defProps.modelValue);
+      monthYearValue.value = helpers.rebuildObject(defProps.modelValue);
+    } else if (
+      !defProps.action &&
+      (checkListIfMonthYearHasValue.value
+        ? condMonthYearValue(monthYearValue.value)
+        : true)
+    ) {
+      emit("update:modelValue", helpers.rebuildObject(defmonthYearValue.value));
+
+      setTimeout(() => {
+        monthYearValue.value = helpers.rebuildObject(defmonthYearValue.value);
+      }, 150);
+    }
+    emit(openMenu.value ? "openMenu" : "closeMenu");
   }
 );
-
-const checkMonthYearValue = computed(
-  () =>
-    ["", undefined, null].includes(monthYearValue.value.month) ||
-    ["", undefined, null].includes(monthYearValue.value.year)
-);
-
-function initMenu() {
-  monthYearValue.value = JSON.parse(JSON.stringify(defProps.modelValue));
-  if (defProps.action)
-    defmonthYearValue.value = JSON.parse(JSON.stringify(defProps.modelValue));
-}
 
 const months = [
   "January",
