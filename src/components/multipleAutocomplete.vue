@@ -1,12 +1,32 @@
 <style lang="scss">
 .vnAutoCompleteVList {
-  .v-list {
-    padding: 0px !important;
-    padding-bottom: 8px !important;
-    > .v-list-item:first-child {
-      margin-top: 8px;
+  &:not(.rangeSelect) {
+    .v-list {
+      padding-bottom: 8px !important;
     }
   }
+  .v-list {
+    padding: 0px !important;
+    .selectAll,
+    .rangeInfo {
+      position: sticky;
+
+      background-color: RGBA(var(--v-theme-surface));
+      z-index: 11111;
+    }
+    .selectAll {
+      padding-top: 8px;
+      top: 0;
+    }
+    .rangeInfo {
+      padding-bottom: 8px;
+      bottom: 0;
+    }
+  }
+}
+.tooltipDetails {
+  padding-left: 2px;
+  user-select: none;
 }
 </style>
 
@@ -21,8 +41,10 @@
     :items="items"
     :disabled="disabled"
     v-model="autoCompleteModel"
+    :rules="rules"
+    return-object
     @update:modelValue="
-      emit('update:modelValue', autoCompleteModel), setDefaultState()
+      emit('update:modelValue', autoCompleteModel || []), setDefaultState()
     "
     :item-title="
       (e) =>
@@ -41,7 +63,10 @@
     :color="color"
     @update:search="autoCompleteSearch = $event"
     @update:focused="autoCompleteFocus"
-    :menu-props="{ contentClass: 'vnAutoCompleteVList' }"
+    :menu-props="{
+      contentClass:
+        'vnAutoCompleteVList' + (minimum || maximum ? ' rangeSelect' : ''),
+    }"
     class="vnAutoComplete"
   >
     <template v-slot:selection="{ item, index }">
@@ -49,26 +74,25 @@
         <v-chip
           size="small"
           v-if="chips"
-          :closable="closableChips"
+          :closable="closableChips && !disabledCheckbox(item)"
           @click:close="removeData(item.value)"
         >
-          <span>{{ getValueUsed(item.value) }}</span>
+          <span>{{ getTitleUsed(item.raw) }}</span>
         </v-chip>
         <span v-else>{{
-          getValueUsed(item.value) +
-          (index + 1 === autoCompleteModel.length ? "" : ",")
+          getTitleUsed(item.value) +
+          (index + 1 === (autoCompleteModel || []).length ? "" : ",")
         }}</span>
       </template>
       <v-tooltip
-        v-if="fitItems && showOthersDetail && index === maxIndex"
+        v-if="showOthersDetail && index === maxIndex"
         location="bottom"
       >
         <template v-slot:activator="{ props }">
           <span
-            style="padding-left: 2px"
             v-bind="props"
             v-if="showOthersDetail && index === maxIndex"
-            class="text-grey text-caption align-self-center"
+            class="text-grey text-caption align-self-center tooltipDetails"
           >
             (+{{ totalNotShowingLists }} others)
           </span>
@@ -76,16 +100,11 @@
         <span>{{ getFilteredList }}</span>
       </v-tooltip>
     </template>
-    <template v-slot:prepend-item v-if="selectAll && filteredItems.length > 1">
-      <div
-        style="
-          position: sticky;
-          top: 0;
-          background-color: RGBA(var(--v-theme-surface));
-          z-index: 11111;
-          padding-top: 8px;
-        "
-      >
+    <template
+      v-slot:prepend-item
+      v-if="selectAll && filteredItems.length > 1 && !maximum"
+    >
+      <div class="selectAll">
         <v-list-item title="Select All" @click="selectAllMethod()">
           <template v-slot:prepend>
             <v-list-item-action start>
@@ -93,33 +112,59 @@
                 :color="color"
                 :model-value="checkSelectAllValue"
                 :indeterminate="checkSelectAllIndeterminate"
-              ></v-checkbox-btn>
+              />
             </v-list-item-action>
           </template>
         </v-list-item>
 
-        <v-divider class="my-2"></v-divider>
+        <v-divider class="my-2" />
       </div>
     </template>
+    <!-- :disabled="
+          totalDisable && +totalDisable > 0 ? totalDisableCheckBox(item) : false
+        " -->
     <template v-slot:item="{ props, item }">
-      <v-list-item v-bind="props" :title="getValueUsed(item.value)">
+      <v-list-item
+        v-bind="props"
+        :title="getTitleUsed(item.raw)"
+        :disabled="disabledCheckbox(item)"
+      >
         <template v-slot:prepend="{ isActive }">
           <v-list-item-action start>
-            <v-checkbox-btn
-              :model-value="isActive"
-              :color="color"
-            ></v-checkbox-btn>
+            <v-checkbox-btn :model-value="isActive" :color="color" />
           </v-list-item-action>
         </template>
       </v-list-item>
     </template>
+    <template v-slot:append-item v-if="minimum || maximum">
+      <div class="rangeInfo">
+        <v-divider class="my-2" />
+        <v-list-item
+          density="compact"
+          :lines="minimum && maximum ? 'two' : 'one'"
+        >
+          <v-list-item-subtitle>
+            <p class="my-1">
+              {{ minimum ? "Minimum: " + minimum + " items" : "" }}
+            </p>
+            <p class="my-1">
+              {{ maximum ? "Maximum: " + maximum + " items" : "" }}
+            </p>
+          </v-list-item-subtitle>
+        </v-list-item>
+      </div>
+    </template>
   </v-autocomplete>
 </template>
 <script lang="ts" setup>
+import helpers from "@/plugins/helpers";
 import { computed, PropType, ref, watch } from "vue";
 
 const defProps = defineProps({
-  modelValue: Array as PropType<Array<any>>,
+  modelValue: {
+    type: Array as PropType<Array<any> | null>,
+    default: [],
+  },
   itemTitle: [String, Function],
   itemValue: [String, Function],
   label: String,
@@ -136,13 +181,33 @@ const defProps = defineProps({
   chips: Boolean,
   closableChips: Boolean,
   selectAll: Boolean,
+  rules: Array<any>,
+
+  minimum: {
+    type: Number,
+    default: 0,
+  },
+  maximum: {
+    type: Number,
+    default: 0,
+  },
 });
 
 const maxIndex = ref(0),
   showOthersDetail = ref(false);
 const autoCompleteModel = ref<any[]>([]),
-  autoCompleteSearch = ref("");
+  autoCompleteSearch = ref(""),
+  catchLastTotalDisabledModel = ref<any[]>(
+    (() => {
+      const returnValue: any[] = [];
+      if (defProps.minimum)
+        for (let index = 0; index < defProps.minimum; index++)
+          returnValue.push(helpers.rebuildObject(defProps.items)[index]);
 
+      return returnValue;
+    })()
+  );
+autoCompleteModel.value = defProps.modelValue || [];
 const filteredItems = computed(() =>
     defProps.items
       .map((e) => {
@@ -160,7 +225,7 @@ const filteredItems = computed(() =>
   validateSelectAll = computed(() =>
     filteredItems.value.map(
       (e: any) =>
-        !!autoCompleteModel.value.find((autoCompleteModelData) =>
+        !!(autoCompleteModel.value || []).find((autoCompleteModelData) =>
           findAutoCompleteModelExist(autoCompleteModelData, getValueUsed(e))
         )
     )
@@ -174,40 +239,49 @@ const filteredItems = computed(() =>
     () => !validateSelectAll.value.includes(false)
   ),
   totalNotShowingLists = computed(
-    () => autoCompleteModel.value.length - maxIndex.value - 1
+    () => (autoCompleteModel.value || []).length - maxIndex.value - 1
   ),
   getFilteredList = computed(() =>
-    autoCompleteModel.value
+    (autoCompleteModel.value || [])
       .slice(maxIndex.value + 1)
-      .map((e) => getValueUsed(e))
+      .map((e) => getTitleUsed(e))
       .join(", ")
   );
 
 const emit = defineEmits(["update:modelValue"]);
 
 const selectAllMethod = () => {
-    if (checkSelectAllValue.value)
+    if (defProps.minimum > 0 && checkSelectAllValue.value)
+      autoCompleteModel.value = catchLastTotalDisabledModel.value;
+    else if (checkSelectAllValue.value) {
       filteredItems.value.forEach((e: any) => {
         removeData(e);
       });
-    else
+    } else
       autoCompleteModel.value = [
-        ...autoCompleteModel.value,
+        ...(autoCompleteModel.value || []),
         ...filteredItems.value
           .map((e: any) => {
-            const findData = autoCompleteModel.value.find(
+            const valueData = getValueUsed(e);
+            const findData = (autoCompleteModel.value || []).find(
               (autoCompleteModelData) =>
-                findAutoCompleteModelExist(
-                  autoCompleteModelData,
-                  getValueUsed(e)
-                )
+                findAutoCompleteModelExist(autoCompleteModelData, valueData)
             );
 
             return findData ? false : e;
           })
           .filter(Boolean),
       ];
-    emit("update:modelValue", autoCompleteModel.value);
+    emit("update:modelValue", autoCompleteModel.value || []);
+  },
+  getTitleUsed = (data: any): string => {
+    if (typeof data === "string") return data;
+    const valueUsed = defProps.itemTitle || defProps.itemValue;
+    return (
+      (typeof valueUsed === "function"
+        ? valueUsed(data)
+        : data[valueUsed || ""]) || ""
+    );
   },
   getValueUsed = (data: any): string => {
     if (typeof data === "string") return data;
@@ -223,25 +297,34 @@ const selectAllMethod = () => {
     compareValue: string
   ) => getValueUsed(autoCompleteModelData) === compareValue,
   removeData = (data: any) => {
-    autoCompleteModel.value.splice(
-      autoCompleteModel.value.findIndex((autoCompleteModelData) =>
+    (autoCompleteModel.value || []).splice(
+      (autoCompleteModel.value || []).findIndex((autoCompleteModelData) =>
         findAutoCompleteModelExist(autoCompleteModelData, getValueUsed(data))
       ),
       1
     );
+    setLastModel();
   },
   setDefaultState = () => {
     maxIndex.value = defProps.items.length;
     showOthersDetail.value = false;
-    const selectionList = Array.from(
+
+    Array.from(
       document.querySelectorAll<HTMLElement>(
         ".vnAutoComplete .v-field__input .v-autocomplete__selection"
       )
-    );
-
-    selectionList.forEach((e: HTMLElement) => {
+    ).forEach((e: HTMLElement) => {
       e.style.display = "";
     });
+    setLastModel();
+  },
+  setLastModel = () => {
+    if (
+      defProps.minimum > 0 &&
+      autoCompleteModel.value.length < defProps.items.length
+    ) {
+      catchLastTotalDisabledModel.value = autoCompleteModel.value;
+    }
   };
 let timerInitializeItems: any = null;
 const autoCompleteFocus = (e: boolean) => {
@@ -249,7 +332,7 @@ const autoCompleteFocus = (e: boolean) => {
     if (!e) initializeItems();
   },
   initializeItems = () => {
-    if (autoCompleteModel.value.length > 0 && defProps.fitItems) {
+    if ((autoCompleteModel.value || []).length > 0 && defProps.fitItems) {
       if (timerInitializeItems != null) clearTimeout(timerInitializeItems);
       timerInitializeItems = setTimeout(() => {
         const selectionList = Array.from(
@@ -268,8 +351,10 @@ const autoCompleteFocus = (e: boolean) => {
               "mdi-close-circle mdi v-icon notranslate v-icon--size-x-small";
 
             childText.innerHTML = text;
-            childChipCloseParent.classList.add("v-chip__close");
-            childChipCloseParent.appendChild(childChipCloseIcon);
+            if (defProps.closableChips) {
+              childChipCloseParent.classList.add("v-chip__close");
+              childChipCloseParent.appendChild(childChipCloseIcon);
+            }
 
             childchipTonal.classList.add("v-chip__underlay");
             chipParent.className =
@@ -296,9 +381,11 @@ const autoCompleteFocus = (e: boolean) => {
           document.querySelector<HTMLElement>(
             ".vnAutoComplete .v-field__input"
           )!.offsetWidth - 22;
-        for (const [i, value] of autoCompleteModel.value.entries()) {
+        for (const [i, value] of (autoCompleteModel.value || []).entries()) {
           createOtherDetails.innerHTML =
-            "(+" + (autoCompleteModel.value.length - (i + 1)) + " others)";
+            "(+" +
+            ((autoCompleteModel.value || []).length - (i + 1)) +
+            " others)";
           const createChip = createChipMethod(getValueUsed(value));
           addElement(createChip);
           const chipWidth = createChip.offsetWidth;
@@ -307,9 +394,11 @@ const autoCompleteFocus = (e: boolean) => {
             returnValue.showOthersDetail ||
             Math.ceil(chipWidth) +
               returnValue.width +
-              createOtherDetails.offsetWidth +
+              (autoCompleteModel.value.length - 1 == i
+                ? 0
+                : createOtherDetails.offsetWidth) +
               2 +
-              (i + 1 === autoCompleteModel.value.length ? 0 : 4) >=
+              (i + 1 === (autoCompleteModel.value || []).length ? 0 : 4) >=
               vnAutocompleteWidth
           )
             returnValue.showOthersDetail = true;
@@ -317,15 +406,28 @@ const autoCompleteFocus = (e: boolean) => {
             returnValue.width += Math.ceil(chipWidth) + 4;
             returnValue.index += 1;
           }
-          selectionList[i].style.display =
-            returnValue.index + 1 <= i ? "none" : "";
+          // selectionList[i].style.display =
+          //   returnValue.index + 1 <= i ? "none" : "";
         }
         createOtherDetails.remove();
         maxIndex.value = returnValue.index === 0 ? 0 : returnValue.index - 1;
         showOthersDetail.value = returnValue.showOthersDetail;
       });
     }
+  },
+  disabledCheckbox: (item: any) => boolean = (item) => {
+    if (!defProps.modelValue || (!defProps.minimum && !defProps.maximum))
+      return false;
+    const findModelItem = defProps.modelValue.find(
+      (e) => getValueUsed(e) === getValueUsed(item.raw)
+    );
+    const minimum =
+      defProps.modelValue.length === defProps.minimum ? !!findModelItem : false;
+    const maximum =
+      defProps.modelValue.length === defProps.maximum ? !findModelItem : false;
+    return (!!defProps.minimum && minimum) || (!!defProps.maximum && maximum);
   };
+
 watch(
   () => defProps.fitItems,
   () => {
