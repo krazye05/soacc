@@ -12,87 +12,15 @@
       },
     ]"
   >
-    <div class="table-title pb-5">
-      <div style="align-items: center; display: flex" v-if="title !== ''">
-        <div class="text-h6 text-title">
-          <v-icon class="title-icon" size="28">mdi-bookmark</v-icon>
-          {{ title }}
-        </div>
-        <!-- </div> -->
-      </div>
-      <div class="searchTable">
-        <v-text-field
-          :density="dense ? 'compact' : 'default'"
-          color="info"
-          variant="outlined"
-          label="Search"
-          append-inner-icon="mdi-magnify"
-          hide-details
-          v-model="searchValue"
-        ></v-text-field>
-      </div>
-      <div
-        v-if="actionButton || generateReport"
-        style="align-items: center; display: flex"
-      >
-        <div class="actionReportButton">
-          <div>
-            <v-btn
-              block
-              :disabled="checkActionButtonDisabled"
-              :loading="checkActionButtonLoading"
-              v-if="actionButton && typeof actionButton?.action === 'function'"
-              @click="actionButton.action()"
-              color="primary"
-              :text="actionButton.title"
-            />
+    <headerTable
+      :title="title"
+      :dense="dense"
+      :action-button="actionButton"
+      :generate-report="generateReport"
+      v-model="searchValue"
+      v-model:model-value-export="dialog"
+    />
 
-            <v-menu
-              v-if="actionButton && typeof actionButton?.action !== 'function'"
-            >
-              <template v-slot:activator="{ isActive, props }">
-                <v-btn color="primary" v-bind="props">
-                  {{ actionButton.title }}
-                  <template v-slot:append>
-                    <v-icon
-                      :style="[
-                        'transition: .2s cubic-bezier(.4,0,.2,1) background-color 90ms 0ms cubic-bezier(0.4, 0, 0.6, 1)',
-
-                        { transform: isActive ? 'rotate(180deg)' : '' },
-                      ]"
-                    >
-                      mdi-menu-down
-                    </v-icon>
-                  </template>
-                </v-btn>
-              </template>
-              <v-list>
-                <v-list-item
-                  v-for="actionButtonList in actionButton.action"
-                  @click="actionButtonList.action()"
-                >
-                  <v-list-item-title style="text-align: center">
-                    {{ actionButtonList.title }}
-                  </v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-menu>
-          </div>
-          <div>
-            <v-btn
-              block
-              :disabled="checkActionButtonDisabled"
-              :loading="checkActionButtonLoading"
-              v-if="generateReport"
-              @click="clickGenerateReport"
-              color="warning"
-              text="Export"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- <v-checkbox-btn class="pe-2"></v-checkbox-btn> -->
     <div class="custom-table-container">
       <div class="custom-table-wrapper">
         <v-table
@@ -107,7 +35,7 @@
                   @click="selectAllMethod"
                   :model-value="checkSelectAllValue"
                   :indeterminate="checkSelectAllIndeterminate"
-                ></v-checkbox-btn>
+                />
               </th>
               <th
                 v-for="header in headers"
@@ -175,7 +103,7 @@
                 <v-checkbox-btn
                   :model-value="selectDataExist(value)"
                   @update:modelValue="clickRowCheckBox($event, value)"
-                ></v-checkbox-btn>
+                />
               </td>
               <td
                 :class="[loadRowOptionColor(value)]"
@@ -204,103 +132,52 @@
         </v-table>
       </div>
     </div>
-    <div class="v-data-table-footer">
-      <div class="v-data-table-footer__items-per-page">
-        <JsonExcel
-          class="btn btn-default"
-          :data="items"
-          :fields="headerExportFile"
-          type="xlsx"
-          worksheet="My Worksheet"
-          name="filename.xlsx"
-          title="Excel"
-        >
-          Excel
-        </JsonExcel>
-        <span>Items per page:</span>
-        <v-select
-          @update:modelValue="pageIndex = 1"
-          :items="getRowPages"
-          v-model="vModelLimitRow"
-          variant="outlined"
-          :density="dense ? 'compact' : 'default'"
-          hide-details
-        ></v-select>
-      </div>
-      <div class="v-data-table-footer__info">
-        <div>{{ pageInfo }}</div>
-      </div>
-      <div class="v-data-table-footer__pagination" style="gap: 5px">
-        <v-btn
-          variant="plain"
-          v-if="showFirstLastButtons"
-          :disabled="pageIndex == 1"
-          @click="onTogglePage('first')"
-          icon="mdi-page-first"
-          :size="dense ? 'small' : 'default'"
-          elevation="0"
-        >
-        </v-btn>
-        <v-btn
-          variant="plain"
-          :disabled="pageIndex == 1"
-          @click="onTogglePage('previous')"
-          icon="mdi-chevron-left"
-          :size="dense ? 'small' : 'default'"
-          elevation="0"
-        >
-        </v-btn>
-        <v-btn
-          variant="plain"
-          :disabled="statusNextLastPage"
-          @click="onTogglePage('next')"
-          icon="mdi-chevron-right"
-          :size="dense ? 'small' : 'default'"
-          elevation="0"
-        >
-        </v-btn>
-        <v-btn
-          variant="plain"
-          v-if="showFirstLastButtons"
-          :disabled="statusNextLastPage"
-          @click="onTogglePage('last')"
-          icon="mdi-page-last"
-          :size="dense ? 'small' : 'default'"
-          elevation="0"
-        >
-        </v-btn>
-      </div>
-    </div>
+    <footerTable
+      v-model:model-value-limit-rows="limitRows"
+      v-model:model-value-page-index="pageIndex"
+      :filtered-lists-length="filteredLists.length"
+      :lists-paginate-length="listsPaginate.length"
+      :items-length="items.length"
+      :dense="dense"
+      :show-first-last-buttons="showFirstLastButtons"
+      :rows-per-page-option="rowsPerPageOption"
+    />
+    <reportTable
+      v-if="generateReport"
+      :headers="headers"
+      :items="items"
+      v-model="dialog"
+      :work-sheet-name="workSheetName || title || 'Sheet 1'"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import {
-  IHeader,
-  IRowsOptions,
-  IRowsPerPageOption,
-  ISort,
-} from "../cDataTable.interface";
-import { computed, PropType, Ref, ref, useSlots } from "vue";
+import { IHeader, IRowsOptions, ISort } from "../cDataTable.interface";
+import headerTable from "./includes/headerTable.vue";
+import footerTable from "./includes/footerTable.vue";
+import reportTable from "./includes/reportTable.vue";
+import { computed, PropType, ref, useSlots } from "vue";
 import cSort from "./cSort.vue";
-import JsonExcel from "vue-json-excel3";
+
+import {
+  headerTableProps,
+  footerTableProps,
+  styleProps,
+  dataTableProps,
+  reportProps,
+} from "./tableProps";
+defineOptions({
+  inheritAttrs: false,
+});
 const emit = defineEmits(["update:modelValue"]);
 const defProps = defineProps({
-  title: {
-    required: false,
-    type: [String, Number],
-    default: "",
-  },
-  showFirstLastButtons: {
-    required: false,
-    type: Boolean,
-    default: true,
-  },
-  dense: {
-    required: false,
-    type: Boolean,
-    default: false,
-  },
+  ...headerTableProps,
+  ...footerTableProps,
+  ...dataTableProps,
+  ...styleProps,
+  ...reportProps,
+
   sort: {
     required: false,
     type: Boolean,
@@ -311,44 +188,8 @@ const defProps = defineProps({
     type: Boolean,
     default: false,
   },
-  hover: {
-    required: false,
-    type: [Boolean, String],
-    default: false,
-  },
-  headers: {
-    required: true,
-    type: Array as PropType<IHeader[]>,
-  },
-  items: {
-    required: true,
-    type: Array as PropType<Array<any>>,
-    default: [],
-  },
-  rowsPerPageOption: {
-    required: false,
-    type: Object as PropType<IRowsPerPageOption>,
-    default: {
-      all: true,
-      rowPages: [5, 10, 25, 50, 100],
-      rowPageIndex: -1,
-    },
-  },
+
   rowsOptions: Object as PropType<IRowsOptions>,
-  actionButton: Object as PropType<{
-    title: string;
-    action:
-      | Function
-      | {
-          title: string;
-          action: Function;
-          loading?: boolean | Ref;
-          disabled?: boolean | Ref;
-        }[];
-    loading?: boolean | Ref;
-    disabled?: boolean | Ref;
-  }>,
-  generateReport: Boolean,
   showSelect: Boolean,
   showSelectKey: String,
   singleSelect: Boolean,
@@ -359,84 +200,14 @@ const limitRows = ref<number>(0),
   multiSortList = ref<Array<ISort>>([]),
   searchValue = ref<string>(""),
   pageIndex = ref<number>(1),
-  dataRowsPerPageOption = ref<IRowsPerPageOption>(),
-  selectData = ref<Array<any>>([]);
+  selectData = ref<Array<any>>([]),
+  dialog = ref(false);
 
-dataRowsPerPageOption.value = {
-  all:
-    defProps.rowsPerPageOption.all === undefined
-      ? true
-      : defProps.rowsPerPageOption.all,
-  rowPages: defProps.rowsPerPageOption.rowPages || [5, 10, 25, 50, 100],
-  rowPageIndex:
-    defProps.rowsPerPageOption.rowPageIndex === undefined
-      ? -1
-      : defProps.rowsPerPageOption.rowPageIndex,
-};
-
-limitRows.value = (() => {
-  const rowsPerPage =
-      dataRowsPerPageOption.value.rowPages === undefined
-        ? []
-        : dataRowsPerPageOption.value.rowPages,
-    rowPageIndex =
-      dataRowsPerPageOption.value.rowPageIndex === undefined
-        ? -1
-        : dataRowsPerPageOption.value.rowPageIndex;
-
-  return rowPageIndex < 0 && dataRowsPerPageOption.value.all
-    ? -1
-    : rowsPerPage[rowsPerPage.length - 1 < rowPageIndex ? 0 : rowPageIndex];
-})();
 const slots = useSlots();
-const getRowPages = computed(() => [
-    ...(dataRowsPerPageOption.value?.rowPages === undefined
-      ? []
-      : dataRowsPerPageOption.value?.rowPages),
-    ...[!dataRowsPerPageOption.value?.all || "All"].filter(Boolean),
-  ]),
-  checkActionButtonLoading = computed(() => {
-    if (defProps.actionButton?.loading === undefined) return false;
-    return typeof defProps.actionButton.loading === "object"
-      ? defProps.actionButton.loading.value
-      : defProps.actionButton.loading;
-  }),
-  checkActionButtonDisabled = computed(() => {
-    if (defProps.actionButton?.disabled === undefined) return false;
-    return typeof defProps.actionButton.disabled === "object"
-      ? defProps.actionButton.disabled.value
-      : defProps.actionButton.disabled;
-  }),
-  vModelLimitRow = computed({
-    get() {
-      return limitRows.value === -1 ? "All" : limitRows.value;
-    },
-    set(newValue: number | "All") {
-      limitRows.value = newValue === "All" ? -1 : newValue;
-    },
-  }),
-  statusNextLastPage = computed(
-    () =>
-      limitRows.value === -1 ||
-      filteredLists.value.length - +limitRows.value * pageIndex.value < 1
-  ),
-  filteredLists = computed<Array<any>>(() => {
+const filteredLists = computed<Array<any>>(() => {
     const itemList = JSON.parse(JSON.stringify(defProps.items));
     if (itemList.length === 0) return itemList;
-    if (
-      (defProps.sort && singleSort !== undefined) ||
-      (defProps.multiSort && multiSortList.value.length > 0)
-    )
-      sortData(
-        itemList,
-        defProps.multiSort && multiSortList.value.length > 0
-          ? multiSortList.value
-          : singleSort.value === undefined
-          ? []
-          : [singleSort.value]
-      );
-
-    return itemList
+    const returnValue = itemList
       .map((item: any) => {
         return defProps.headers
           .map((header: any) => {
@@ -456,6 +227,19 @@ const getRowPages = computed(() => [
           : false;
       })
       .filter(Boolean);
+    if (
+      (defProps.sort && singleSort.value !== undefined) ||
+      (defProps.multiSort && multiSortList.value.length > 0)
+    )
+      return sortData(
+        returnValue,
+        defProps.multiSort && multiSortList.value.length > 0
+          ? multiSortList.value
+          : singleSort.value === undefined
+          ? []
+          : [singleSort.value]
+      );
+    return returnValue;
   }),
   listsPaginate = computed(() => {
     const _filteredLists = JSON.parse(JSON.stringify(filteredLists.value));
@@ -465,17 +249,6 @@ const getRowPages = computed(() => [
       (pageIndex.value - 1) * +limitRows.value,
       +limitRows.value
     );
-  }),
-  pageInfo = computed(() => {
-    const previousTotalList = +limitRows.value * (pageIndex.value - 1);
-    return filteredLists.value.length <= 0
-      ? "-"
-      : previousTotalList +
-          1 +
-          "-" +
-          (previousTotalList + listsPaginate.value.length) +
-          " of " +
-          filteredLists.value.length;
   }),
   validateSelectAll = computed(() =>
     defProps.items.map((e: any) => selectDataExist(e))
@@ -487,17 +260,11 @@ const getRowPages = computed(() => [
   ),
   checkSelectAllValue = computed(
     () => !validateSelectAll.value.includes(false)
-  ),
-  headerExportFile = computed(() => {
-    return defProps.headers.reduce((accumulator, value) => {
-      return { ...accumulator, [value.text]: value.value };
-    }, {});
-  });
+  );
 const sortAvailable = (header: IHeader) =>
     header.sort === undefined
       ? defProps.multiSort || String(defProps.sort).toLowerCase() === "true"
       : header.sort,
-  clickGenerateReport = () => {},
   sortValue = (header: IHeader) => {
     const sortData = defProps.multiSort
       ? multiSortList.value.find((e) => e.value === header.value)
@@ -580,15 +347,6 @@ const sortAvailable = (header: IHeader) =>
       return weightOfObject(a).localeCompare(weightOfObject(b));
     });
   },
-  onTogglePage = (pageNumber: "next" | "previous" | "first" | "last") => {
-    if (defProps.showFirstLastButtons) {
-      if (pageNumber === "first") pageIndex.value = 1;
-      if (pageNumber === "last")
-        pageIndex.value = Math.ceil(defProps.items.length / +limitRows.value);
-    }
-    if (pageNumber === "next") pageIndex.value += 1;
-    if (pageNumber === "previous") pageIndex.value -= 1;
-  },
   sortIndex = (header: IHeader) =>
     multiSortList.value.findIndex((e) => e.value === header.value) + 1,
   renderText = (value: any, header: IHeader) =>
@@ -625,5 +383,35 @@ const sortAvailable = (header: IHeader) =>
   selectAllMethod = () => {
     selectData.value = checkSelectAllValue.value ? [] : defProps.items.slice();
     emit("update:modelValue", selectData.value);
+  },
+  exportReport = async (e) => {
+    // console.log(e);
+    // if (type == "EXCEL") {
+    // const users = [
+    //   { id: 1, name: "John", phone: "123456789" },
+    //   { id: 2, name: "Anne", phone: "987654321" },
+    //   { id: 3, name: "Zack", phone: "123987456" },
+    //   { id: 4, name: "Jill", phone: "456123789" },
+    //   { id: 5, name: "Judy", phone: "789456123" },
+    //   { id: 6, name: "Jenny", phone: "123789456" },
+    //   { id: 7, name: "David", phone: "456789123" },
+    // ];
+    // const workbook = new Workbook();
+    // const worksheet = workbook.addWorksheet("sheet");
+    // worksheet.columns = [
+    //   { key: "id", label: "ID" },
+    //   { key: "name", label: "Name" },
+    //   { key: "phone", label: "Phone" },
+    // ].map((field) => ({
+    //   header: field.label,
+    //   key: field.key,
+    // }));
+    // worksheet.addRows(users);
+    // const buffer = await workbook.xlsx.writeBuffer();
+    // const blob = new Blob([buffer], { type: "text/xlsx" });
+    // const link = document.createElement("a");
+    // link.href = window.URL.createObjectURL(blob);
+    // link.download = "Test.xlsx";
+    // link.click();
   };
 </script>

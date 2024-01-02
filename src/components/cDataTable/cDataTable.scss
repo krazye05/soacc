@@ -3,37 +3,7 @@
     -webkit-padding-start: unset;
     padding-inline-start: unset;
   }
-  .table-title {
-    display: flex;
-    justify-content: space-between;
-    .title-icon {
-      color: RGBA(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
-    }
-    .text-title {
-      white-space: nowrap;
-      align-items: center;
-      display: flex;
-      // flex: 1;
-      // margin: auto;
-      color: RGBA(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
-      // white-space: nowrap;
-      // overflow: hidden;
-      // text-overflow: ellipsis;
-      // max-width: 200px;
-    }
-    .actionReportButton {
-      display: flex;
-      justify-content: space-between;
-    }
-    .searchTable {
-      width: 100%;
-    }
-    div {
-      &:not(:first-child) {
-        margin-left: 8px;
-      }
-    }
-  }
+
   :deep(.v-card-item) {
     display: flex;
     // padding: unset;
@@ -162,29 +132,9 @@
       }
     }
   }
-  .v-data-table-footer {
-    padding: 0.625rem 1rem;
-  }
 }
 @media (max-width: 768px) {
   .custom-table {
-    .table-title {
-      flex-wrap: wrap;
-      justify-content: center !important;
-      div {
-        width: 100%;
-        &:not(:last-child) {
-          margin-bottom: 8px !important;
-        }
-        &:not(:first-child) {
-          margin-left: unset !important;
-        }
-      }
-    }
-    .actionReportButton {
-      flex-wrap: wrap;
-      justify-content: center !important;
-    }
     &:not(.has-title) {
       &.has-actionButton {
         :deep(.v-table) {
