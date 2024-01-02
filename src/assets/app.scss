@@ -114,39 +114,6 @@
   margin-inline-end: 16px !important;
 }
 
-.v-dialog.alert-confirmation-dialog {
-  @media (min-width: 600px) {
-    :deep(.v-overlay__content) {
-      // min-width: calc(50% - 48px) !important;
-      width: calc(90% - 48px) !important;
-    }
-  }
-  @media (min-width: 960px) {
-    :deep(.v-overlay__content) {
-      // min-width: calc(50% - 48px) !important;
-      width: calc(80% - 48px) !important;
-    }
-  }
-  @media (min-width: 1280px) {
-    :deep(.v-overlay__content) {
-      // min-width: calc(50% - 48px) !important;
-      width: calc(70% - 48px) !important;
-    }
-  }
-  @media (min-width: 1920px) {
-    :deep(.v-overlay__content) {
-      // min-width: calc(50% - 48px) !important;
-      width: calc(60% - 48px) !important;
-    }
-  }
-  @media (min-width: 2560px) {
-    :deep(.v-overlay__content) {
-      // min-width: calc(50% - 48px) !important;
-      width: calc(50% - 48px) !important;
-    }
-  }
-}
-
 // .v-list-group__header.v-list-item--active:not(:focus-visible)
 //   .v-list-item__overlay {
 // }

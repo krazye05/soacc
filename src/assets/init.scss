@@ -129,7 +129,44 @@ html {
 .v-theme--dark {
   --v-theme-on-warning: 255, 255, 255 !important;
 }
-
+.v-dialog {
+  &.alert-confirmation-dialog,
+  &.auto {
+    .v-overlay__content {
+      transition: width 0.2s ease-in-out;
+    }
+    @media (min-width: 600px) {
+      .v-overlay__content {
+        // min-width: calc(50% - 48px) !important;
+        width: calc(90% - 48px) !important;
+      }
+    }
+    @media (min-width: 960px) {
+      .v-overlay__content {
+        // min-width: calc(50% - 48px) !important;
+        width: calc(80% - 48px) !important;
+      }
+    }
+    @media (min-width: 1280px) {
+      .v-overlay__content {
+        // min-width: calc(50% - 48px) !important;
+        width: calc(70% - 48px) !important;
+      }
+    }
+    @media (min-width: 1920px) {
+      .v-overlay__content {
+        // min-width: calc(50% - 48px) !important;
+        width: calc(60% - 48px) !important;
+      }
+    }
+    @media (min-width: 2560px) {
+      .v-overlay__content {
+        // min-width: calc(50% - 48px) !important;
+        width: calc(50% - 48px) !important;
+      }
+    }
+  }
+}
 // html {
 //   overflow: auto;
 // }
