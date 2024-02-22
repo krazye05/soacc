@@ -181,7 +181,7 @@
         style="z-index: 1; right: 16px; top: 16px; opacity: 80%"
         icon="mdi-close"
         @click="dialog = false"
-      ></v-btn>
+      />
       <vue-pdf-embed :source="pdfObject" />
     </v-card>
   </v-dialog>
@@ -222,6 +222,7 @@ const pdfObject = computed(() =>
   statementDataListsRetructured = computed<SoaccAccountDetails[]>(() =>
     statementDataLists.value.map((statementDataList) => {
       const stDetails = statementDataList.statementDetails
+        .replace(/\t/g, " ")
         .split(/\r?\n|\r|\n/g)
         .reduce((accum: Array<SoaccTransactions>, args) => {
           if (args === "") return accum;
@@ -266,7 +267,6 @@ const pdfObject = computed(() =>
     return bankDetails.value
       .find((e) => e.UID === inputBank.value)!
       .columnHeaders.map((e: any) => {
-        console.log(e);
         if (e.value === "amount")
           e.render = (value: any, header: any) => {
             return convertToMoney(Number(value.amount.toFixed(2)));
