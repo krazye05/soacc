@@ -5,7 +5,8 @@ export interface IHeader {
   sortIndex?: number;
   columnNumber?: number | null;
   sticky?: boolean | string;
-  render?: Function;
+  chip?: boolean | string;
+  render?: (value?: any, header?: any) => any;
 }
 
 export interface IRowsPerPageOption {

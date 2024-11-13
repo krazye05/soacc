@@ -99,7 +99,7 @@
                     'td-overlay',
                     { 'has-color': loadRowOptionColor(value) || false },
                   ]"
-                ></div>
+                />
                 <v-checkbox-btn
                   :model-value="selectDataExist(value)"
                   @update:modelValue="clickRowCheckBox($event, value)"
@@ -115,8 +115,11 @@
                     'td-overlay',
                     { 'has-color': loadRowOptionColor(value) || false },
                   ]"
-                ></div>
-                <label> {{ renderText(value, header) }}</label>
+                />
+                <div v-if="slots['cellBody_$' + header.value]">
+                  <slot :name="'cellBody_$' + header.value" :value="value" />
+                </div>
+                <label v-else> {{ renderText(value, header) }}</label>
               </td>
               <td :class="[loadRowOptionColor(value)]" v-if="slots.optionRow">
                 <div
@@ -124,7 +127,7 @@
                     'td-overlay',
                     { 'has-color': loadRowOptionColor(value) || false },
                   ]"
-                ></div>
+                />
                 <slot name="optionRow" :value="value" />
               </td>
             </tr>
